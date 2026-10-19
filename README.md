@@ -15,22 +15,17 @@ The first run downloads three.js once and keeps a copy, so the game works offlin
 ## Accounts
 
 * **Email:** works out of the box. Passwords are stored hashed (scrypt). Progress, coins and outfits are saved on the server in `data/`.
-* **Google / Apple buttons:** they need keys that only you can create. Until you add them the buttons are shown greyed out.
+* **Google button:** needs a key that only you can create. Until you add it the button is shown greyed out.
 
 ### Turn on Google sign-in
 1. Go to https://console.cloud.google.com, APIs & Services, Credentials, Create credentials, OAuth client ID, type "Web application".
 2. Add your site address under "Authorized JavaScript origins". Google only allows `http://localhost` or an `https://` address. A plain `http://192.168...` address will NOT work for Google, so test it on `http://localhost:3000` and use https for the real site.
 3. Copy `config.example.json` to `config.json` and paste the client ID into `googleClientId`. Restart the server.
 
-### Turn on Sign in with Apple
-1. Needs an Apple Developer account. Create an App ID with "Sign in with Apple", then a **Services ID** (that is the `appleClientId`).
-2. Configure the Services ID with your https domain and a return URL (put the same into `appleRedirectUri`). Apple does not work on localhost or plain http.
-3. Put both values in `config.json` and restart.
-
-If someone signs in with Google/Apple using an email that already has an email account, they are linked to the same account.
+If someone signs in with Google using an email that already has an email account, they are linked to the same account.
 
 ## Putting it online for real
-Run `node server.js` on a host with a public address (a VPS, Render, Railway, Fly.io...) behind https (needed for Google/Apple). Keep the `data/` folder on a persistent disk and keep `data/secret.key` private. Set `PORT` if your host asks for it. Settings can also be given as environment variables: `GOOGLE_CLIENT_ID`, `APPLE_CLIENT_ID`, `APPLE_REDIRECT_URI`.
+Run `node server.js` on a host with a public address (a VPS, Render, Railway, Fly.io...) behind https (needed for Google). Keep the `data/` folder on a persistent disk and keep `data/secret.key` private. Set `PORT` if your host asks for it. The key can also be given as the environment variable `GOOGLE_CLIENT_ID`.
 
 ## Notes
 * Email addresses are not verified (no mail is sent) and there is no password reset yet.

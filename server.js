@@ -10,9 +10,7 @@ let cfgFile = {};
 try { cfgFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8')); } catch (e) {}
 const CFG = {
   port: +(process.env.PORT || cfgFile.port || 3000),
-  googleClientId: process.env.GOOGLE_CLIENT_ID || cfgFile.googleClientId || '',
-  appleClientId: process.env.APPLE_CLIENT_ID || cfgFile.appleClientId || '',        // Apple "Services ID"
-  appleRedirectUri: process.env.APPLE_REDIRECT_URI || cfgFile.appleRedirectUri || ''  // must be https
+  googleClientId: process.env.GOOGLE_CLIENT_ID || cfgFile.googleClientId || ''
 };
 const PUB = path.join(__dirname, 'public');
 const DATA = path.join(__dirname, 'data');
@@ -72,20 +70,9 @@ async function verifyGoogle(credential) {
   if (!j || j.aud !== CFG.googleClientId || !j.sub || !['accounts.google.com', 'https://accounts.google.com'].includes(j.iss) || +j.exp * 1000 < Date.now()) throw httpErr(401, 'Google sign-in failed.');
   return { sub: j.sub, email: (j.email || '').toLowerCase(), verified: j.email_verified === 'true' || j.email_verified === true };
 }
-let appleKeys = { t: 0, keys: [] };
-async function verifyApple(idToken) {
-  if (!CFG.appleClientId) throw httpErr(503, 'Apple sign-in is not set up on this server.');
-  const parts = String(idToken).split('.'); if (parts.length !== 3) throw httpErr(401, 'Apple sign-in failed.');
-  const head = JSON.parse(Buffer.from(parts[0], 'base64url')), claims = JSON.parse(Buffer.from(parts[1], 'base64url'));
-  if (Date.now() - appleKeys.t > 36e5) { appleKeys = { t: Date.now(), keys: (await getJSON('https://appleid.apple.com/auth/keys')).keys || [] }; }
-  const jwk = appleKeys.keys.find(k => k.kid === head.kid); if (!jwk || head.alg !== 'RS256') throw httpErr(401, 'Apple sign-in failed.');
-  const ok = crypto.createVerify('RSA-SHA256').update(parts[0] + '.' + parts[1]).verify(crypto.createPublicKey({ key: jwk, format: 'jwk' }), Buffer.from(parts[2], 'base64url'));
-  if (!ok || claims.iss !== 'https://appleid.apple.com' || claims.aud !== CFG.appleClientId || +claims.exp * 1000 < Date.now()) throw httpErr(401, 'Apple sign-in failed.');
-  return { sub: claims.sub, email: (claims.email || '').toLowerCase() };
-}
 function httpErr(status, msg) { const e = new Error(msg); e.status = status; return e; }
 function socialUser(kind, sub, email) {
-  const idx = kind === 'google' ? users.byGoogle : users.byApple;
+  const idx = users.byGoogle;
   if (idx[sub]) return users.byId[idx[sub]];
   let u = email && users.byEmail[email] ? users.byId[users.byEmail[email]] : null; /* link to an existing account with the same email */
   if (u) { (u[kind] = sub); } else {
@@ -146,7 +133,7 @@ function handleDb(uid, b) {
 
 async function api(req, res, route) {
   if (route === '/api/config') {
-    return send(res, 200, { google: CFG.googleClientId || '', apple: CFG.appleClientId ? { clientId: CFG.appleClientId, redirectURI: CFG.appleRedirectUri } : null });
+    return send(res, 200, { google: CFG.googleClientId || '' });
   }
   if (req.method !== 'POST') return send(res, 405, { error: 'POST only' });
   const b = await readBody(req);
@@ -172,7 +159,6 @@ async function api(req, res, route) {
     return send(res, 200, { token: makeToken(u.id), user: pub(u) });
   }
   if (route === '/api/google') { const g = await verifyGoogle(b.credential); const u = socialUser('google', g.sub, g.verified ? g.email : ''); return send(res, 200, { token: makeToken(u.id), user: pub(u) }); }
-  if (route === '/api/apple') { const a = await verifyApple(b.id_token); const u = socialUser('apple', a.sub, a.email); return send(res, 200, { token: makeToken(u.id), user: pub(u) }); }
   const uid = authUid(req);
   if (!uid) throw httpErr(401, 'Please sign in.');
   if (route === '/api/me') return send(res, 200, pub(users.byId[uid]));
@@ -302,6 +288,6 @@ server.listen(CFG.port, '0.0.0.0', () => {
   for (const list of Object.values(os.networkInterfaces())) for (const i of list || []) if (i.family === 'IPv4' && !i.internal) console.log('  Other devices (same Wi-Fi/network):  http://' + i.address + ':' + CFG.port);
   console.log('\n  Email sign-up: ready');
   console.log('  Google sign-in: ' + (CFG.googleClientId ? 'ready' : 'not configured (see README)'));
-  console.log('  Apple sign-in:  ' + (CFG.appleClientId ? 'ready' : 'not configured (see README)') + '\n');
+  console.log('');
   ensureThree().then(ok => console.log(ok ? '  three.js ready (cached for offline use)' : '  three.js could not be downloaded; the browser will load it from the CDN instead'));
 });
