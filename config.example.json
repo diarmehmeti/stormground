@@ -1,0 +1,6 @@
+{
+  "port": 3000,
+  "googleClientId": "1234567890-abcdefg.apps.googleusercontent.com",
+  "appleClientId": "com.yourname.stormground.web",
+  "appleRedirectUri": "https://your-domain.com/"
+}
