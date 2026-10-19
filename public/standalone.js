@@ -1,6 +1,6 @@
 /* Stormground standalone connector.
    Provides the same window.claude.use('user' | 'db' | 'room') interface the game expects,
-   backed by this server: accounts (email / Google / Apple), saved progress, and multiplayer rooms. */
+   backed by this server: accounts (email / Google), saved progress, and multiplayer rooms. */
 (function () {
   'use strict';
   if (window.claude) return;
@@ -10,7 +10,7 @@
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
     del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
   };
-  var token = store.get(TOK), me = null, cfg = { google: '', apple: null };
+  var token = store.get(TOK), me = null, cfg = { google: '' };
 
   function api(p, body) {
     var h = { 'Content-Type': 'application/json' };

@@ -149,6 +149,7 @@ input::placeholder{color:#aab9ff}
 /* touch */
 #touch{position:absolute;inset:0;display:none;pointer-events:none;z-index:4}
 #hud{z-index:6}
+#lobby{z-index:7}
 #over{z-index:8}
 #touch.on{display:block}
 #aimZone{position:absolute;right:0;top:16%;bottom:0;width:54%;pointer-events:auto;touch-action:none}
@@ -1659,7 +1660,7 @@ function layoutPreview(){
   const compact=W<=760||H<=520;let x=0,y=0;
   if(document.body.classList.contains('loading')){x=-W*.26;y=compact?H*.04:0}
   else if(phase==='menu'){if(compact)y=H*.2;else y=H*.02}
-  else if(phase==='custom'){if(compact)y=H*.27;else x=Math.min(400,W*.46)/2}
+  else if(phase==='custom'){if(H<=520){x=Math.min(W*.54,460)/2+W*.01;y=H*.03}else if(compact)y=H*.27;else x=Math.min(400,W*.46)/2}
   pvxT=x;pvyT=y;if(!pvInit){pvInit=true;pvx=x;pvy=y}
   pcam.setViewOffset(W,H,pvx,pvy,W,H);
 }

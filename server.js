@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Stormground server - zero dependencies (Node 18+).
-   Serves the game, creates accounts (email / Google / Apple), stores progress,
+   Serves the game, creates accounts (email / Google), stores progress,
    and relays multiplayer (rooms, presence, events) over WebSockets. */
 'use strict';
 const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto'), os = require('os'), https = require('https');
@@ -26,7 +26,7 @@ function saveJSON(f, obj) {
     try { fs.writeFileSync(tmp, JSON.stringify(obj)); fs.renameSync(tmp, path.join(DATA, f)); } catch (e) { console.error('save failed', e.message); }
   }, 300);
 }
-const users = loadJSON('users.json', { byId: {}, byEmail: {}, byGoogle: {}, byApple: {} });
+const users = loadJSON('users.json', { byId: {}, byEmail: {}, byGoogle: {} });
 const docs = loadJSON('db.json', {});
 let SECRET;
 try { SECRET = fs.readFileSync(path.join(DATA, 'secret.key'), 'utf8'); } catch (e) { SECRET = crypto.randomBytes(32).toString('hex'); fs.writeFileSync(path.join(DATA, 'secret.key'), SECRET, { mode: 0o600 }); }
@@ -153,7 +153,7 @@ async function api(req, res, route) {
     const email = String(b.email || '').trim().toLowerCase(), pw = String(b.password || '');
     if (throttled('l' + ip + email)) throw httpErr(429, 'Too many tries. Wait a few minutes.');
     const u = users.byId[users.byEmail[email]];
-    if (!u || !u.hash) throw httpErr(401, u ? 'This account uses Google or Apple sign-in.' : 'Wrong email or password.');
+    if (!u || !u.hash) throw httpErr(401, u ? 'This account uses Google sign-in.' : 'Wrong email or password.');
     const a = Buffer.from(hashPw(pw.slice(0, 100), u.salt)), c = Buffer.from(u.hash);
     if (a.length !== c.length || !crypto.timingSafeEqual(a, c)) throw httpErr(401, 'Wrong email or password.');
     return send(res, 200, { token: makeToken(u.id), user: pub(u) });
