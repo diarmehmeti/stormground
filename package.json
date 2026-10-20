@@ -1,1 +1,0 @@
-{"name":"stormground","version":"1.0.0","description":"Stormground battle royale: game + account + multiplayer server","main":"server.js","scripts":{"start":"node server.js"},"engines":{"node":">=18"},"license":"UNLICENSED"}
