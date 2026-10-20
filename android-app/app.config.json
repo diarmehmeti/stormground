@@ -1,8 +1,0 @@
-{
-  "appId": "com.yourname.stormground",
-  "appName": "Stormground",
-  "server": "https://YOUR-SERVER.onrender.com",
-  "admobAppId": "ca-app-pub-3940256099942544~3347511713",
-  "admobRewardedId": "ca-app-pub-3940256099942544/5224354917",
-  "admobTest": true
-}
